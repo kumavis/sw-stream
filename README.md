@@ -1,13 +1,15 @@
 # Notes for Service workers
 Service Workers have a life cycle and are able to listen to events (via postMessage)
 
+## Developing:
+`npm run start`
+
 ## Expected flow:
 `Dapp -> Iframe -> service worker`
 
 ## Important to Note
 
 <!-- - Service only works for https -->
-- MetaMask inpage.js produces a 'message' event
 - APIs such as synchronous XHR and localStorage can't be used inside a service worker. (I)
 - Service Workers will terminate if devtools are open for window
 - A Service worker update may be installed but will wait to update until their in no clients using the service worker is open.
