@@ -3,6 +3,7 @@ var serviceWorkerController
 window.onload = function () {
   serviceWorkerController = new SwController()
   serviceWorkerController.on('error', showError)
+  serviceWorkerController.on('message', showMessage)
   serviceWorkerController.on('data', showData)
   setupButton(serviceWorkerController)
 }
@@ -16,7 +17,12 @@ function showError (message) {
   var errContainer = document.getElementById('err')
   errContainer.style.background = ' #ffd6cc'
   errContainer.style.color = '#ff471a'
-  errContainer.append(message)
+  errContainer.innerText = message
+}
+
+function showMessage (message) {
+  var messageContainer = document.getElementById('message')
+  messageContainer.innerText = message
 }
 
 

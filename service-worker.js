@@ -1,24 +1,21 @@
 var counter = 0;
-self.clients.matchAll().then(function(clients) {
-  clients.forEach(function(client) {
-    console.log(client);
-    client.postMessage('The service worker just started up.');
-  });
-});
+const version = 0.1;
+sendMessageToAllClients('The service worker just started up.')
 
 self.onmessage = function (message) {
   switch (message.data) {
     case 'counter':
       ++counter;
+      sendMessageToAllVisibleClients('counter', counter)
       return message.ports[0].postMessage({
         err: null,
         data: counter
       })
 
-    case 'hello love':
+    case 'get count':
       return message.ports[0].postMessage({
         err: null,
-        data: 'message received'
+        data: counter
       })
 
     default:
@@ -27,25 +24,17 @@ self.onmessage = function (message) {
       })
   }
 };
-self.addEventListener('periodicsync', function(event) {
-  if (event.registration.tag == 'get-latest-news') {
-    event.waitUntil(fetchAndCacheLatestNews());
-  }
-  else {
-    // unknown sync, may be old, best to unregister
-    event.registration.unregister();
-  }
-});
-/*
+
 self.addEventListener('activate', function(event) {
   event.waitUntil(self.clients.claim());
 });
-*/
+
 self.oninstall = function (event) {
+
   // cache the state of the app and ui so that
   // you can restart
   // in the right place
-  // event.waitUntil(self.skipWaiting());
+  event.waitUntil(self.skipWaiting());
   // where you could posibly hault all things so
   // that the service worker can update
 }
@@ -60,4 +49,60 @@ or just be all like hay data changed
 
 things achieved here:
 */
+  var focused
+  self.clients.matchAll()
+  .then(clients => {
+    clients.forEach(function(client) {
+      if (client.focused) {
+        focused = true
+        return sendMessageToClient(client, 'sync Received', counter)
+        .then(clientInfo => {
+          if (clientInfo.version > version) {
+            debugger
+            self.registration.update()
+          }
+        })
+      } else {
+        sendMessageToClient(client, 'not focused')
+      }
+    })
+    if (!focused) {sendMessageToAllClients('no focus')}
+  })
 };
+
+function sendMessageToClient(client, msg, data){
+    return new Promise(function(resolve, reject){
+        var msgChan = new MessageChannel();
+        msgChan.port1.onmessage = function(event){
+            if(event.data.error){
+                reject(event.data.error);
+            }else{
+                resolve(event.data);
+            }
+        };
+
+        client.postMessage({
+          message: `SW Says: ${msg}`,
+          data: data
+        }, [msgChan.port2]);
+    });
+}
+function sendMessageToAllVisibleClients (message, data) {
+  self.clients.matchAll().then(function(clients) {
+    clients.forEach(function(client) {
+      if (client.visibilityState === 'visible') {
+        client.postMessage({message, data});
+      }
+    });
+  });
+}
+
+function sendMessageToAllClients (message) {
+  self.clients.matchAll().then(function(clients) {
+    clients.forEach(function(client) {
+      client.postMessage(message);
+    });
+  });
+}
+
+

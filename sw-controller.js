@@ -5,51 +5,38 @@ module.exports = class serviceWorkerController extends EventEmitter{
     super()
     this.serviceWorker = navigator.serviceWorker
     this.registerWorker()
+    .then(registerdWorker => {
+      window.onfocus = this.syncSW.bind(this, registerdWorker)
+
+      return this.syncSW(registerdWorker)
+    })
+    .catch(err => {
+      this.handleError(err)
+    })
   }
 
   registerWorker () {
     try {
-      this.serviceWorker.register('service-worker.js', { scope: './' })
+      this.serviceWorker.addEventListener('message', this.handelIncomingMessage.bind(this))
+      return this.serviceWorker.register('service-worker.js')
       .then(sw => {
-        sw.onmessage = (mess) => console.dir(mess)
-        sw.update()
-        .then(val => {
-          sw.sync.register('sync')
-          .then(() => {
-            console.log('sync')
-            this.sendMessage('hello love')
-            .then((data) => {
-              this.emit('data', data)
-            })
-          })
-          .catch(err => {
-            this.handleError(err, 'Service worker sync failed')
-          })
-        })
-        .catch(err => {
-          this.handleError(err, 'Service worker update failed')
-        })
-      })
-      .catch(err => {
-        this.handleError(err, 'ServiceWorker failed to register. Are you visiting the HTTPS site?')
+        this.registerdWorker = sw
+        return sw
       })
     } catch (err) {
-      this.handleError(err, 'The current browser doesn\'t support service workers.')
+      return Promise.reject(err)
     }
 
   }
-  setUpPeriodicSync () {
-    this.serviceWorker.ready.then((registration) => {
-    registration.periodicSync.register({
-      tag: 'get-latest-news',         // default: ''
-      minPeriod: 12 * 60 * 60 * 1000, // default: 0
-      powerState: 'avoid-draining',   // default: 'auto'
-      networkState: 'avoid-cellular'  // default: 'online'
-    }).then(function(periodicSyncReg) {
-    // success
-    }, function() {
-    // failure
+
+  syncSW (registeredSW) {
+    registeredSW.sync.register('sync')
+    .then(() => {
+      console.log('sync')
+      return this.sendMessage('get count')
     })
+    .then((data) => {
+      this.emit('data', data)
     })
   }
 
@@ -67,6 +54,20 @@ module.exports = class serviceWorkerController extends EventEmitter{
       self.serviceWorker.controller.postMessage(message, [messageChannel.port2])
     })
   }
+  handelIncomingMessage (message) {
+    switch(message.data.message) {
+      case 'err':
+        return handleError(message.data.data)
+      case 'counter':
+        return this.emit('data', message.data.data)
+      case 'SW Says: sync Received':
+        message.ports[0].postMessage({version: 0})
+        return this.emit('message', message.data.message)
+      default:
+        return this.emit('message', message.data.message)
+    }
+  }
+
   handleError (err, contextMessage) {
     if (!err) {
       console.error(contextMessage)
