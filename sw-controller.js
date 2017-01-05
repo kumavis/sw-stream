@@ -52,7 +52,6 @@ module.exports = class serviceWorkerController extends EventEmitter{
     })
   }
   handelIncomingMessage (message, context) {
-
     const data = message.data
     switch(data.message) {
       case 'err':
