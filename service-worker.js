@@ -1,21 +1,27 @@
 var counter = 0;
-const version = 0.1;
+const version = "0.0.1"
 sendMessageToAllClients('The service worker just started up.')
 
 self.onmessage = function (message) {
   switch (message.data) {
-    case 'counter':
+    case 'increaseCounter':
       ++counter;
-      sendMessageToAllVisibleClients('counter', counter)
+      sendMessageToAllVisibleClients('counterIncreased', counter)
       return message.ports[0].postMessage({
         err: null,
-        data: counter
+        data: {
+          data: counter,
+          message: 'counterIncreased',
+        }
       })
 
     case 'get count':
       return message.ports[0].postMessage({
         err: null,
-        data: counter
+        data: {
+          data: counter,
+          message: 'counter',
+        }
       })
 
     default:
@@ -30,7 +36,6 @@ self.addEventListener('activate', function(event) {
 });
 
 self.oninstall = function (event) {
-
   // cache the state of the app and ui so that
   // you can restart
   // in the right place
@@ -55,10 +60,9 @@ things achieved here:
     clients.forEach(function(client) {
       if (client.focused) {
         focused = true
-        return sendMessageToClient(client, 'sync Received', counter)
+        return sendMessageToClient(client, 'sync Received', {counter})
         .then(clientInfo => {
-          if (clientInfo.version > version) {
-            debugger
+          if (clientInfo.version !== version) {
             self.registration.update()
           }
         })
@@ -82,8 +86,9 @@ function sendMessageToClient(client, msg, data){
         };
 
         client.postMessage({
-          message: `SW Says: ${msg}`,
-          data: data
+          message: 'SW Says',
+          full: `SW Says: ${msg}`,
+          data: data,
         }, [msgChan.port2]);
     });
 }

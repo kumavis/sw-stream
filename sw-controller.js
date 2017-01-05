@@ -1,13 +1,12 @@
 const EventEmitter = require('events')
-
+const version = require('./stub').version
 module.exports = class serviceWorkerController extends EventEmitter{
   constructor (opts) {
     super()
     this.serviceWorker = navigator.serviceWorker
-    this.registerWorker()
+    this.startWorker()
     .then(registerdWorker => {
       window.onfocus = this.syncSW.bind(this, registerdWorker)
-
       return this.syncSW(registerdWorker)
     })
     .catch(err => {
@@ -15,28 +14,26 @@ module.exports = class serviceWorkerController extends EventEmitter{
     })
   }
 
-  registerWorker () {
-    try {
-      this.serviceWorker.addEventListener('message', this.handelIncomingMessage.bind(this))
-      return this.serviceWorker.register('service-worker.js')
-      .then(sw => {
-        this.registerdWorker = sw
-        return sw
-      })
-    } catch (err) {
-      return Promise.reject(err)
+  startWorker () {
+    this.serviceWorker.addEventListener('message', this.handelIncomingMessage.bind(this))
+    if (!this.serviceWorker.controller) {
+      return Promise.resolve(this.registerWorker())
+    } else {
+      return Promise.resolve(this.serviceWorker.ready)
     }
+  }
 
+  registerWorker () {
+    return this.serviceWorker.register('service-worker.js')
+    .then(sw => {
+      return sw
+    })
   }
 
   syncSW (registeredSW) {
-    registeredSW.sync.register('sync')
+    return registeredSW.sync.register('sync')
     .then(() => {
       console.log('sync')
-      return this.sendMessage('get count')
-    })
-    .then((data) => {
-      this.emit('data', data)
     })
   }
 
@@ -54,17 +51,22 @@ module.exports = class serviceWorkerController extends EventEmitter{
       self.serviceWorker.controller.postMessage(message, [messageChannel.port2])
     })
   }
-  handelIncomingMessage (message) {
-    switch(message.data.message) {
+  handelIncomingMessage (message, context) {
+
+    const data = message.data
+    switch(data.message) {
       case 'err':
-        return handleError(message.data.data)
-      case 'counter':
-        return this.emit('data', message.data.data)
-      case 'SW Says: sync Received':
-        message.ports[0].postMessage({version: 0})
-        return this.emit('message', message.data.message)
+        return handleError(message)
+      case 'counterIncreased':
+        return this.emit('data', data.data)
+      case 'SW Says':
+        if (data.full === 'SW Says: sync Received') {
+          this.emit('data', data.data.counter)
+        }
+        message.ports[0].postMessage({version})
+        return this.emit('message', data.full)
       default:
-        return this.emit('message', message.data.message)
+        return this.emit('other', `${data.data}${data.message}`)
     }
   }
 
@@ -79,7 +81,6 @@ module.exports = class serviceWorkerController extends EventEmitter{
   }
 
   counter () {
-    return this.sendMessage('counter')
-    .then(data => this.emit('data', data))
+    return this.sendMessage('increaseCounter')
   }
 }
