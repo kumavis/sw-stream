@@ -1,5 +1,9 @@
 const EventEmitter = require('events')
-const version = require('./stub').version
+const pipe = require('pump')
+const PortDuplexStream = require('./port-stream.js')
+const version = require('../stub').version
+
+
 module.exports = class serviceWorkerController extends EventEmitter{
   constructor (opts) {
     super()
@@ -7,6 +11,13 @@ module.exports = class serviceWorkerController extends EventEmitter{
     this.startWorker()
     .then(registerdWorker => {
       window.onfocus = this.syncSW.bind(this, registerdWorker)
+      this.sendMessage('tell me')
+      registerdWorker.onupdatefound =  () => {
+        this.sendMessage('update found').then((reply) => {
+          // registerWorker.update()
+        })
+      }
+
       return this.syncSW(registerdWorker)
     })
     .catch(err => {
@@ -14,8 +25,21 @@ module.exports = class serviceWorkerController extends EventEmitter{
     })
   }
 
+  createPorts () {
+    var messageChannel = new MessageChannel()
+    return Promise.resolve([messageChannel.port1, messageChannel.port2])
+  }
+
+  setupStreams (ports) {
+    pipe([
+      ports[0],
+      ports[1]
+      ])
+  }
+
   startWorker () {
     this.serviceWorker.addEventListener('message', this.handelIncomingMessage.bind(this))
+    // check to see if their is a preregistered service worker
     if (!this.serviceWorker.controller) {
       return Promise.resolve(this.registerWorker())
     } else {
@@ -24,7 +48,7 @@ module.exports = class serviceWorkerController extends EventEmitter{
   }
 
   registerWorker () {
-    return this.serviceWorker.register('service-worker.js')
+    return this.serviceWorker.register('sw-bundle.js')
     .then(sw => {
       return sw
     })

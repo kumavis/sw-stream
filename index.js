@@ -1,4 +1,4 @@
-const SwController = require('./sw-controller')
+const SwController = require('./public/sw-controller')
 var serviceWorkerController
 window.onload = function () {
   serviceWorkerController = new SwController()

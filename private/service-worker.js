@@ -1,45 +1,18 @@
-var counter = 0;
-const version = "0.0.1"
+const EventEmitter = require('events')
+var id = Math.random()
 sendMessageToAllClients('The service worker just started up.')
 
-self.onmessage = function (message) {
-  switch (message.data) {
-    case 'increaseCounter':
-      ++counter;
-      sendMessageToAllVisibleClients('counterIncreased', counter)
-      return message.ports[0].postMessage({
-        err: null,
-        data: {
-          data: counter,
-          message: 'counterIncreased',
-        }
-      })
-
-    case 'get count':
-      return message.ports[0].postMessage({
-        err: null,
-        data: {
-          data: counter,
-          message: 'counter',
-        }
-      })
-
-    default:
-      return message.ports[0].postMessage({
-        err: `no message under that name`,
-      })
-  }
-};
-
 self.addEventListener('activate', function(event) {
-  event.waitUntil(self.clients.claim());
-});
+  console.log(id, 'activate')
+  event.waitUntil(self.clients.claim())
+})
 
 self.oninstall = function (event) {
   // cache the state of the app and ui so that
   // you can restart
   // in the right place
-  event.waitUntil(self.skipWaiting());
+  console.log(id, 'oninstall')
+  event.waitUntil(self.skipWaiting())
   // where you could posibly hault all things so
   // that the service worker can update
 }
@@ -60,7 +33,7 @@ things achieved here:
     clients.forEach(function(client) {
       if (client.focused) {
         focused = true
-        return sendMessageToClient(client, 'sync Received', {counter})
+        return sendMessageToClient(client, 'sync Received')
         .then(clientInfo => {
           if (clientInfo.version !== version) {
             self.registration.update()
@@ -72,42 +45,42 @@ things achieved here:
     })
     if (!focused) {sendMessageToAllClients('no focus')}
   })
-};
+}
 
 function sendMessageToClient(client, msg, data){
     return new Promise(function(resolve, reject){
-        var msgChan = new MessageChannel();
+        var msgChan = new MessageChannel()
         msgChan.port1.onmessage = function(event){
             if(event.data.error){
-                reject(event.data.error);
+                reject(event.data.error)
             }else{
-                resolve(event.data);
+                resolve(event.data)
             }
-        };
+        }
 
         client.postMessage({
           message: 'SW Says',
-          full: `SW Says: ${msg}`,
+          full: `${id}SW Says: ${msg}`,
           data: data,
-        }, [msgChan.port2]);
-    });
+        }, [msgChan.port2])
+    })
 }
 function sendMessageToAllVisibleClients (message, data) {
   self.clients.matchAll().then(function(clients) {
     clients.forEach(function(client) {
       if (client.visibilityState === 'visible') {
-        client.postMessage({message, data});
+        client.postMessage({message, data})
       }
-    });
-  });
+    })
+  })
 }
 
 function sendMessageToAllClients (message) {
   self.clients.matchAll().then(function(clients) {
     clients.forEach(function(client) {
-      client.postMessage(message);
-    });
-  });
+      client.postMessage(message)
+    })
+  })
 }
 
 
