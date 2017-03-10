@@ -9,7 +9,8 @@ window.onload = function () {
 }
 function setupButton (sw) {
   var button = document.getElementById('button')
-  button.addEventListener('click', sw.counter.bind(sw))
+  // test some action some action you want button to do
+  // button.addEventListener('click', action goes here)
 }
 
 

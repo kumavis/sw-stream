@@ -35,9 +35,7 @@ things achieved here:
         focused = true
         return sendMessageToClient(client, 'sync Received')
         .then(clientInfo => {
-          if (clientInfo.version !== version) {
-            self.registration.update()
-          }
+          debugger
         })
       } else {
         sendMessageToClient(client, 'not focused')

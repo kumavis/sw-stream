@@ -1,6 +1,4 @@
 const EventEmitter = require('events')
-const pipe = require('pump')
-const PortDuplexStream = require('./port-stream.js')
 const version = require('../stub').version
 
 
@@ -28,13 +26,6 @@ module.exports = class serviceWorkerController extends EventEmitter{
   createPorts () {
     var messageChannel = new MessageChannel()
     return Promise.resolve([messageChannel.port1, messageChannel.port2])
-  }
-
-  setupStreams (ports) {
-    pipe([
-      ports[0],
-      ports[1]
-      ])
   }
 
   startWorker () {
@@ -101,9 +92,5 @@ module.exports = class serviceWorkerController extends EventEmitter{
       console.error(err)
       this.emit('error', err)
     }
-  }
-
-  counter () {
-    return this.sendMessage('increaseCounter')
   }
 }
