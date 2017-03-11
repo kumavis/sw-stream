@@ -1,4 +1,6 @@
 # Notes for Service workers
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/kumavis/sw-stream.svg)](https://greenkeeper.io/)
 Service Workers have a life cycle and are able to listen to events (via postMessage)
 
 ## Developing:
