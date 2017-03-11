@@ -36,7 +36,7 @@
     "babelify": "^7.3.0",
     "beefy": "^2.1.8",
     "brfs": "^1.4.3",
-    "browserify": "^13.3.0",
+    "browserify": "^14.1.0",
     "uglifyify": "^3.0.4",
     "watchify": "^3.7.0"
   },
