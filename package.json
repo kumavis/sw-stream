@@ -13,8 +13,13 @@
       [
         "babelify",
         {
-          "presets": ["es2015", "stage-3"],
-          "plugins": ["transform-runtime"]
+          "presets": [
+            "es2015",
+            "stage-3"
+          ],
+          "plugins": [
+            "transform-runtime"
+          ]
         }
       ],
       "brfs"
@@ -36,6 +41,7 @@
     "watchify": "^3.7.0"
   },
   "dependencies": {
+    "duplexify": "^3.5.0",
     "end-of-stream": "^1.1.0",
     "pump": "^1.0.2",
     "readable-stream": "^2.2.2",
