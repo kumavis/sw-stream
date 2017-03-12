@@ -1,28 +1,20 @@
 const EventEmitter = require('events')
 
 const version = require('../stub').version
-const ContainerStream = require('./container-stream')
+const SwStream = require('../lib/sw-stream')
 
 
 module.exports = class ServiceWorkerLauncher extends EventEmitter {
   constructor (opts) {
     super()
     this.serviceWorker = navigator.serviceWorker
-    
-    let duplex = ContainerStream(this.serviceWorker)
-    duplex.on('data', (chunk) => {console.log('controller saw:', chunk) })
-    duplex.on('error', (chunk) => {console.log('controller saw:', chunk) })
-
-    duplex.write({ value: 42 })
-
     this.startWorker()
     .then(registeredWorker => {
-      // this.establishConnection()
-      // registeredWorker.onupdatefound = () => {
-      //   this.sendMessage('update found').then((reply) => {
-      //     // registerWorker.update()
-      //   })
-      // }
+      console.log('setting up stream...')
+      const duplex = SwStream(registeredWorker)
+      duplex.on('data', (chunk) => {console.log('controller saw:', chunk) })
+      duplex.on('error', (chunk) => {console.log('controller saw:', chunk) })
+      duplex.write({ value: 42 })
     })
     .catch(err => {
       this.handleError(err)
@@ -30,7 +22,6 @@ module.exports = class ServiceWorkerLauncher extends EventEmitter {
   }
 
   startWorker () {
-    // this.serviceWorker.addEventListener('message', this.handelIncomingMessage.bind(this))
     // check to see if their is a preregistered service worker
     if (!this.serviceWorker.controller) {
       console.log('registering...')
