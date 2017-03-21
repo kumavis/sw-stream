@@ -4,9 +4,7 @@
   "description": "service worker stream",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "beefy index.js:bundle.js --live --open --index=./index.html --cwd ./",
-    "buildsw": "watchify private/service-worker.js -t babelify --plugins [ transform-runtime ] -o ./sw-bundle.js -v -d"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "browserify": {
     "transform": [
@@ -14,24 +12,17 @@
         "babelify",
         {
           "presets": [
-            "es2015",
-            "stage-3"
-          ],
-          "plugins": [
-            "transform-runtime"
+            "es2015"
           ]
         }
       ],
       "brfs"
     ]
   },
-  "author": "frankiebee",
+  "author": "kumavis",
   "license": "ISC",
   "devDependencies": {
-    "babel-plugin-transform-async-generator-functions": "^6.22.0",
-    "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-es2015": "^6.22.0",
-    "babel-preset-stage-3": "^6.22.0",
     "babel-runtime": "^6.23.0",
     "babelify": "^7.3.0",
     "beefy": "^2.1.8",
