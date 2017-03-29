@@ -37,5 +37,16 @@
     "pump": "^1.0.2",
     "readable-stream": "^2.2.2",
     "through2": "^2.0.3"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kumavis/sw-stream.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kumavis/sw-stream/issues"
+  },
+  "homepage": "https://github.com/kumavis/sw-stream#readme"
 }
