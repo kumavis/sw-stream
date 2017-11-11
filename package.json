@@ -2,7 +2,7 @@
   "name": "sw-stream",
   "version": "2.0.1",
   "description": "service worker stream",
-  "main": "index.js",
+  "main": "lib/sw-stream.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
