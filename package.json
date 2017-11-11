@@ -1,6 +1,6 @@
 {
   "name": "sw-stream",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "service worker stream",
   "main": "lib/sw-stream.js",
   "scripts": {
